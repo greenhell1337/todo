@@ -1,4 +1,3 @@
-
 DROP TABLE lists_items;
 
 DROP TABLE users_lists;
