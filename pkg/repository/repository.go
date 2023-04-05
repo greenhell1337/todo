@@ -1,8 +1,13 @@
 package repository
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+	"todo/pkg/model"
+)
 
 type Authorization interface {
+	CreateUser(user model.User) (int, error)
+	GetUser(username, password string) (model.User, error)
 }
 
 type TodoList interface {
@@ -18,5 +23,7 @@ type Repository struct {
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
-	return &Repository{}
+	return &Repository{
+		Authorization: NewAuthMy(db),
+	}
 }

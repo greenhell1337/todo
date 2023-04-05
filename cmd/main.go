@@ -2,8 +2,10 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
+	"os"
 	"todo"
 	"todo/pkg/handlers"
 	"todo/pkg/repository"
@@ -11,25 +13,29 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 	if err := initConfig(); err != nil {
-		log.Fatalf("error initializing configs: %s", err.Error())
+		logrus.Fatalf("error initializing configs: %s", err.Error())
+	}
+	if err := godotenv.Load(); err != nil {
+		logrus.Fatalf("error any loading variables: %s", err.Error())
 	}
 	db, err := repository.NewMyDB(repository.Config{
 		Username: "root",
-		Password: "0010",
+		Password: os.Getenv("DB_PASSWORD"),
 		DBName:   "todo",
 	})
 	if err != nil {
-		log.Fatalf("not connected, error: %s", err.Error())
+		logrus.Fatalf("not connected, error: %s", err.Error())
 	}
 	repos := repository.NewRepository(db)
 	services := service.NewService(repos)
 	handler := handlers.NewHandler(services)
 
-	srv := new(todo.Server)
+	srv := &todo.Server{}
 	err = srv.Run(viper.GetString("port"), handler.InitRoutes())
 	if err != nil {
-		log.Fatalf("error occurred while runnin http server: %s", err.Error())
+		logrus.Fatalf("error occurred while runnin http server: %s", err.Error())
 	}
 }
 
